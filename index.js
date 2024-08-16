@@ -9,8 +9,6 @@ app.use(cors());
 app.use(express.json());
 
 
-
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.fbvkkp8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -34,8 +32,8 @@ async function run() {
     app.get('/products', async (req, res) => {
       const page = parseInt(req.query.page) || 1; 
       const limit = parseInt(req.query.limit) || 10; 
-      const sortBy = req.query.sortBy || 'date'; // Default sorting by date
-      const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1; // Default descending order
+      const sortBy = req.query.sortBy || 'date'; 
+      const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1; 
       const skip = (page - 1) * limit;
       const searchTerm = req.query.search || ''; 
   
@@ -51,14 +49,14 @@ async function run() {
       let searchQuery = {};
       if (searchTerm) {
           searchQuery = {
-              productName: { $regex: searchTerm, $options: 'i' } // Case-insensitive regex search
+              productName: { $regex: searchTerm, $options: 'i' }
           };
       }
   
       // Find products based on search, sort, and pagination
       const cursor = jobtaskphcollection.find(searchQuery).sort(sortQuery).skip(skip).limit(limit);
       const result = await cursor.toArray();
-      const totalProducts = await jobtaskphcollection.countDocuments(searchQuery); // Count only the filtered documents
+      const totalProducts = await jobtaskphcollection.countDocuments(searchQuery);
       
       res.send({
           products: result,
