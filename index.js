@@ -81,9 +81,9 @@ run().catch(console.dir);
 
 
 app.get('/',(req,res)=>{
-    res.send('the  product server is running')
+    res.send('the best electronics server is running')
 })
 
 app.listen(port,()=>{
-    console.log(`the product is running port : ${port}`)
+    console.log(`the best electronics server is running port : ${port}`)
 })
