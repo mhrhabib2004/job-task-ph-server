@@ -37,7 +37,7 @@ async function run() {
       const sortBy = req.query.sortBy || 'date'; // Default sorting by date
       const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1; // Default descending order
       const skip = (page - 1) * limit;
-      const searchTerm = req.query.search || ''; // Get search term from query
+      const searchTerm = req.query.search || ''; 
   
       let sortQuery = {};
       
