@@ -35,9 +35,10 @@ async function run() {
       const page = parseInt(req.query.page) || 1; 
       const limit = parseInt(req.query.limit) || 10; 
       const sortBy = req.query.sortBy || 'date'; // Default sorting by date
-      const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1; // Default ascending order
+      const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1; // Default descending order
       const skip = (page - 1) * limit;
-      
+      const searchTerm = req.query.search || ''; // Get search term from query
+  
       let sortQuery = {};
       
       if (sortBy === 'price') {
@@ -45,11 +46,20 @@ async function run() {
       } else if (sortBy === 'date') {
           sortQuery = { createdAt: sortOrder };
       }
-      
-      const cursor = jobtaskphcollection.find().sort(sortQuery).skip(skip).limit(limit);
+  
+      // Build the search query
+      let searchQuery = {};
+      if (searchTerm) {
+          searchQuery = {
+              productName: { $regex: searchTerm, $options: 'i' } // Case-insensitive regex search
+          };
+      }
+  
+      // Find products based on search, sort, and pagination
+      const cursor = jobtaskphcollection.find(searchQuery).sort(sortQuery).skip(skip).limit(limit);
       const result = await cursor.toArray();
-      const totalProducts = await jobtaskphcollection.countDocuments();
-    
+      const totalProducts = await jobtaskphcollection.countDocuments(searchQuery); // Count only the filtered documents
+      
       res.send({
           products: result,
           currentPage: page,
