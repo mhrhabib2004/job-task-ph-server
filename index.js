@@ -29,17 +29,27 @@ async function run() {
 
     const jobtaskphcollection = client.db('jobPh').collection('products');
 
+    // data get from database with pagination
+    
     app.get('/products', async (req, res) => {
       const page = parseInt(req.query.page) || 1; 
       const limit = parseInt(req.query.limit) || 10; 
+      const sortBy = req.query.sortBy || 'date'; // Default sorting by date
+      const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1; // Default ascending order
       const skip = (page - 1) * limit;
-  
-      const cursor = jobtaskphcollection.find().skip(skip).limit(limit);
+      
+      let sortQuery = {};
+      
+      if (sortBy === 'price') {
+          sortQuery = { price: sortOrder };
+      } else if (sortBy === 'date') {
+          sortQuery = { createdAt: sortOrder };
+      }
+      
+      const cursor = jobtaskphcollection.find().sort(sortQuery).skip(skip).limit(limit);
       const result = await cursor.toArray();
-  
-      // Get the total count of products
       const totalProducts = await jobtaskphcollection.countDocuments();
-  
+    
       res.send({
           products: result,
           currentPage: page,
@@ -47,6 +57,7 @@ async function run() {
           totalProducts
       });
   });
+  
   
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
