@@ -44,35 +44,53 @@ async function run() {
       const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
       const skip = (page - 1) * limit;
       const searchTerm = req.query.search || '';
-
+  
+      const brandFilter = req.query.brand || '';
+      const categoryFilter = req.query.category || '';
+      const priceRangeFilter = req.query.priceRange ? req.query.priceRange.split('-').map(Number) : [0, Infinity];
+  
       let sortQuery = {};
-
+  
       if (sortBy === 'price') {
-        sortQuery = { price: sortOrder };
+          sortQuery = { price: sortOrder };
       } else if (sortBy === 'date') {
-        sortQuery = { createdAt: sortOrder };
+          sortQuery = { createdAt: sortOrder };
       }
-
+  
       // Build the search query
       let searchQuery = {};
       if (searchTerm) {
-        searchQuery = {
-          productName: { $regex: searchTerm, $options: 'i' }
-        };
+          searchQuery.productName = { $regex: searchTerm, $options: 'i' };
       }
-
-      // Find products based on search, sort, and pagination
+  
+      // Add brand filter to the search query if provided
+      if (brandFilter) {
+          searchQuery.brandName = brandFilter;
+      }
+  
+      // Add category filter to the search query if provided
+      if (categoryFilter) {
+          searchQuery.category = categoryFilter;
+      }
+  
+      // Add price range filter to the search query
+      if (priceRangeFilter) {
+          searchQuery.price = { $gte: priceRangeFilter[0], $lte: priceRangeFilter[1] };
+      }
+  
+      // Find products based on search, filter, sort, and pagination
       const cursor = jobtaskphcollection.find(searchQuery).sort(sortQuery).skip(skip).limit(limit);
       const result = await cursor.toArray();
       const totalProducts = await jobtaskphcollection.countDocuments(searchQuery);
-
+  
       res.send({
-        products: result,
-        currentPage: page,
-        totalPages: Math.ceil(totalProducts / limit),
-        totalProducts
+          products: result,
+          currentPage: page,
+          totalPages: Math.ceil(totalProducts / limit),
+          totalProducts
       });
-    });
+  });
+  
 
 
     // Send a ping to confirm a successful connection
